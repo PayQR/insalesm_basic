@@ -19,7 +19,8 @@ var payqrButton = {
         this.button['data-amount']     = this.getTotal();
         this.button['data-userdata']   = JSON.stringify(this.getUserData());
         this.button['data-cart']       = JSON.stringify(this.getDataCart());
-        this.button['data-orderIdRequired'] = 'required';
+        this.button['data-orderIdRequired'] = 'deny';
+        //this.button['data-delivery-required'] = 'required';
 
         //устанавливаем в локальное хранилище
         sessionStorage.setItem('button', JSON.stringify(this.button));
@@ -139,10 +140,13 @@ var payqrButton = {
             this.userData.address = $("#shipping_address_address").val();
         }
 
-        if($("#shipping_address_no_delivery").length < 0)
+        if($("#shipping_address_no_delivery").length < 0 || ($("#shipping_address_no_delivery").length>0 && $("#shipping_address_no_delivery:checked").length))
         {
-            this.userData.city = null;
-            this.userData.address = null;
+            delete this.userData.city;
+            delete this.userData.address;
+            delete this.userData.zip;
+            delete this.userData.address;
+            delete this.userData.deliveryId;
         }
 
         if($("#delivery input:checked").length > 0)
@@ -153,12 +157,28 @@ var payqrButton = {
 
         if($('input[id*="order_delivery_variant_id"]').length > 0)
         {
-            this.userData.deliveryId = $('input[id*="order_delivery_variant_id"]:checked').val();
+            if($("#shipping_address_no_delivery").length>0 && !$("#shipping_address_no_delivery:checked").length)
+            {
+                this.userData.deliveryId = $('input[id*="order_delivery_variant_id"]:checked').val();
+            }
+            else
+            {
+                delete this.userData.city;
+                delete this.userData.address;
+                delete this.userData.zip;
+                delete this.userData.address;
+                delete this.userData.deliveryId;
+            }
         }
 
         if($("#payment input:checked").length > 0)
         {
             this.userData.paymentId = $("#payment input:checked").val();
+        }
+
+        if($('input[id*="order_payment_gateway_id"]').length > 0)
+        {
+            this.userData.paymentId = $('input[id*="order_payment_gateway_id"]:checked').val();
         }
 
         this.userData.token = this.token;
